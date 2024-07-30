@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using OptiTrajet.Domain.Entities;
-using OptiTrajet.Dtos;
+using OptiTrajet.Dtos.In;
+using OptiTrajet.Dtos.Out;
 using OptiTrajet.Persistence;
 using OptiTrajet.Services.Interfaces;
 using Spire.Xls;
 using System.Data;
 using System.Net.Http.Headers;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace OptiTrajet.Services
 {
@@ -24,31 +26,52 @@ namespace OptiTrajet.Services
 
         public async Task FindOptimalCommute(FindOptimalCommute command)
         {
+            var place = await _dbContext.Places.Where(x => x.Lat == command.Lat && x.Lon == command.Lon).FirstOrDefaultAsync();
+
+            if (place == null)
+            {
+                place = new Place
+                {
+                    Lat = command.Lat,
+                    Lon = command.Lon,
+                };
+
+                await _dbContext.Places.AddAsync(place);
+
+                await _dbContext.SaveChangesAsync();
+            }
+
             var client = CreacteCLient();
             var fTime = GetTime();
 
-            var place = await _dbContext.Places.Where(x => x.Id == command.PlaceId).FirstOrDefaultAsync();
+            var stationsIdWithItinerary = await _dbContext.Itineraries.Where(x => x.PlaceId == place.Id).Select(x => x.StationId).Distinct().ToListAsync();
 
-            if(place == null)
+            var query = _dbContext.Stations.AsQueryable();
+
+            if (command.Radius > 0)
             {
-                throw new Exception("Place not found");
+                // TODO
+            }
+            if (command.Lines.Length > 0)
+            {
+                query = query.Where(x => command.Lines.Contains(x.LineId));
             }
 
-            var stationsIdWithItinerary = await _dbContext.Itineraries.Where(x => x.PlaceId == command.PlaceId).Select(x => x.StationId).ToListAsync();
-            List<Guid> stationIds = await _dbContext.Stations.Select(x => x.Id).ToListAsync();
-            var stationsIdWithoutItinerary = stationIds.Except(stationsIdWithItinerary).ToList();
-
-            var stations = await _dbContext.Stations.Where(b => stationsIdWithoutItinerary.Contains(b.Id)).Select(s => new StationLatLonDto
+            var stations = await query.Where(b => !stationsIdWithItinerary.Contains(b.Id)).Select(s => new StationLatLonDto
             {
                 Id = s.Id,
                 Lat = s.Lat,
                 Lon = s.Lon,
-
-            }).GroupBy(g => g.Lat.ToString() + g.Lon.ToString()).ToListAsync();
+            }).GroupBy(g => g.Lat.ToString() + "-" + g.Lon.ToString()).ToListAsync();
 
             foreach (var s in stations)
             {
-                var station = s.First();
+                var station = s.FirstOrDefault();
+
+                if(station is null)
+                {
+                    continue;
+                }
 
                 var duration = -1;
 
@@ -76,7 +99,7 @@ namespace OptiTrajet.Services
             client.Dispose();
         }
 
-        private async Task<ByteArrayContent> GenerateReport(Guid placeId)
+        public async Task<ByteArrayContent> GetReport(Guid placeId)
         {
             var cities = await _dbContext.Itineraries.Where(x => x.Id == placeId).Select(x => new Report
             {
@@ -153,11 +176,6 @@ namespace OptiTrajet.Services
 
             return new ByteArrayContent(stream.ToArray());
         }
-    }
-
-    public record FindOptimalCommute
-    {
-        public Guid PlaceId { get; set; }
     }
 
     public record Report

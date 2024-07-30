@@ -2,8 +2,8 @@
 
 namespace OptiTrajet.Services.Interfaces
 {
-    public interface ICityService
+    public interface ILineService
     {
-        Task<List<CityDto>> Get();
+        Task<List<LineDto>> Get();
     }
 }

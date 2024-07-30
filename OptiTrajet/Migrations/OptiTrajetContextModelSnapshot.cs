@@ -102,12 +102,8 @@ namespace OptiTrajet.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Adresse")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
                     b.Property<DateTime>("CreatedAt")
+                        .HasMaxLength(250)
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Lat")

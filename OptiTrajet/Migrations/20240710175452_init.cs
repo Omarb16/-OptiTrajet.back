@@ -45,8 +45,7 @@ namespace OptiTrajet.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Lat = table.Column<decimal>(type: "decimal(18,16)", nullable: false),
                     Lon = table.Column<decimal>(type: "decimal(18,16)", nullable: false),
-                    Adresse = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", maxLength: 250, nullable: false)
                 },
                 constraints: table =>
                 {

@@ -12,7 +12,7 @@ using OptiTrajet.Persistence;
 namespace OptiTrajet.Migrations
 {
     [DbContext(typeof(OptiTrajetContext))]
-    [Migration("20240709204303_init")]
+    [Migration("20240710175452_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -105,12 +105,8 @@ namespace OptiTrajet.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Adresse")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
                     b.Property<DateTime>("CreatedAt")
+                        .HasMaxLength(250)
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Lat")

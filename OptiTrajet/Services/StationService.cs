@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OptiTrajet.Domain.Entities;
-using OptiTrajet.Dtos;
+using OptiTrajet.Dtos.In;
+using OptiTrajet.Dtos.Out;
 using OptiTrajet.Persistence;
 using OptiTrajet.Services.Interfaces;
 
@@ -10,36 +10,39 @@ namespace OptiTrajet.Services
     {
         private readonly OptiTrajetContext _dbContext;
 
+        private const decimal latconv = ;
+        private const decimal lonconv = ;
+
         public StationService(OptiTrajetContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        public async Task<List<Station>> Get()
+        public async Task<List<StationDto>> Get(GetStations command)
         {
-            return await _dbContext.Stations.ToListAsync();
-        }
+            var query = _dbContext.Stations.AsQueryable();
 
-        public async Task<List<StationDto>> GetStationsDto(GetStationsDto query)
-        {
-            return await _dbContext.Itineraries
-            .Where(x => x.Duration <= query.Duration && x.PlaceId == query.PlaceId)
-            .Select(x => new StationDto
+            if (command.Lines.Length > 0)
+            {
+                query = query.Where(x => command.Lines.Contains(x.LineId));
+            }
+
+            if (command.Radius > 0)
+            {
+                query.AsEnumerable().Where(x =>
+                {
+                    return command.Radius >= Math.Sqrt(Math.Pow((double)Math.Abs((command.Lat - x.Lat) * 111.0M), 2) + Math.Pow((double)Math.Abs((command.Lon - x.Lon) * 111.321M), 2));
+                });
+            }
+
+            return await query.Select(x => new StationDto
             {
                 Id = x.Id,
-                Lat = x.Station.Lat,
-                Lon = x.Station.Lon,
-                Name = x.Station.Name,
-                CityId = x.Station.CityId,
-                Color = x.Station.Line.Color,
-                Duration = x.Duration
+                Lat = x.Lat,
+                Lon = x.Lon,
+                Name = x.Name,
+                Color = x.Line.Color
             }).ToListAsync();
         }
-    }
-
-    public record GetStationsDto
-    {
-        public Guid PlaceId { get; set; }
-        public int Duration { get; set; } = 0;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OptiTrajet.Dtos.In;
 using OptiTrajet.Services;
 using OptiTrajet.Services.Interfaces;
 using System.Net.Mime;
@@ -11,27 +12,44 @@ namespace OptiTrajet.Controllers
     public class Controller : ControllerBase
     {
         private readonly IItineraryService _itinerariesService;
-        private readonly IPlaceService _placeService;
         private readonly IStationService _stationService;
         private readonly ICityService _cityService;
+        private readonly ILineService _lineService;
+        private readonly Serilog.ILogger _logger;
 
-        public Controller(IItineraryService itinerariesService, IPlaceService placeService, IStationService stationService, ICityService cityService)
+        public Controller(IItineraryService itinerariesService, IStationService stationService, ICityService cityService, ILineService lineService, Serilog.ILogger logger)
         {
             _itinerariesService = itinerariesService;
-            _placeService = placeService;
             _stationService = stationService;
             _cityService = cityService;
+            _lineService = lineService;
+            _logger = logger;
         }
 
-        [HttpGet("GetStations")]
-        public async Task<IActionResult> GetStations()
+        [HttpPost("GetStations")]
+        public async Task<IActionResult> GetStations([FromBody] GetStations command)
         {
             try
             {
-                return Ok(await _stationService.Get());
+                return Ok(await _stationService.Get(command));
             }
-            catch
+            catch(Exception ex)
             {
+                _logger.Error("{ex}", ex);
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("GetReport/{id}")]
+        public async Task<IActionResult> GetReport(Guid id)
+        {
+            try
+            {
+                return Ok(await _itinerariesService.GetReport(id));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("{ex}", ex);
                 return BadRequest();
             }
         }
@@ -43,8 +61,23 @@ namespace OptiTrajet.Controllers
             {
                 return Ok(await _cityService.Get());
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.Error("{ex}", ex);
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("GetLines")]
+        public async Task<IActionResult> GetLines()
+        {
+            try
+            {
+                return Ok(await _lineService.Get());
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("{ex}", ex);
                 return BadRequest();
             }
         }
@@ -57,21 +90,9 @@ namespace OptiTrajet.Controllers
                 await _itinerariesService.FindOptimalCommute(command);
                 return Ok();
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest();
-            }
-        }
-
-        [HttpPost("AddPlace")]
-        public async Task<IActionResult> AddPlace([FromBody] AddPlace command)
-        {
-            try
-            {
-                return Ok(await _placeService.Add(command));
-            }
-            catch
-            {
+                _logger.Error("{ex}", ex);
                 return BadRequest();
             }
         }

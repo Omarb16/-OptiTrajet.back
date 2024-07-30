@@ -1,11 +1,11 @@
 ﻿using OptiTrajet.Domain.Entities;
-using OptiTrajet.Dtos;
+using OptiTrajet.Dtos.In;
+using OptiTrajet.Dtos.Out;
 
 namespace OptiTrajet.Services.Interfaces
 {
     public interface IStationService
     {
-        Task<List<StationDto>> GetStationsDto(GetStationsDto query);
-        Task<List<Station>> Get();
+        Task<List<StationDto>> Get(GetStations command);
     }
 }

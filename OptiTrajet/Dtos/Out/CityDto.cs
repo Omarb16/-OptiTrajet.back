@@ -1,4 +1,4 @@
-﻿namespace OptiTrajet.Dtos
+﻿namespace OptiTrajet.Dtos.Out
 {
     public class CityDto
     {

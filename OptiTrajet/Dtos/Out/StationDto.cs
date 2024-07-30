@@ -1,9 +1,8 @@
-﻿namespace OptiTrajet.Dtos
+﻿namespace OptiTrajet.Dtos.Out
 {
     public class StationDto
     {
         public Guid Id { get; set; }
-        public Guid? CityId { get; set; }
         public int Duration { get; set; }
         public decimal Lat { get; set; }
         public decimal Lon { get; set; }

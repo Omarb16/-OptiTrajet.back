@@ -6,23 +6,22 @@ using OptiTrajet.Services.Interfaces;
 
 namespace OptiTrajet.Services
 {
-    public class CityService : ICityService
+    public class LineService : ILineService
     {
         private readonly OptiTrajetContext _dbContext;
 
-        public CityService(OptiTrajetContext dbContext)
+        public LineService(OptiTrajetContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        public async Task<List<CityDto>> Get()
+        public async Task<List<LineDto>> Get()
         {
-            return await _dbContext.Cities.Select(s => new CityDto
+            return await _dbContext.Lines.Select(s => new LineDto
             {
                 Id = s.Id,
                 Name = s.Name,
-                Coordianates = JsonConvert.DeserializeObject<decimal[][]>(s.Coordianates)!,
-            }).ToListAsync();
+            }).OrderBy(x => x.Name).ToListAsync();
         }
     }
 }

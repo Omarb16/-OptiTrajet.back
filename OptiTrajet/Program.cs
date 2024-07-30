@@ -34,8 +34,8 @@ builder.Host.UseSerilog(Log.Logger);
 builder.Services.AddDbContext<OptiTrajetContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddTransient<ICityService, CityService>();
 builder.Services.AddTransient<IItineraryService, ItineraryService>();
-builder.Services.AddTransient<IPlaceService, PlaceService>();
 builder.Services.AddTransient<IStationService, StationService>();
+builder.Services.AddTransient<ILineService, LineService>();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddEndpointsApiExplorer();
