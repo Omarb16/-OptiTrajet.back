@@ -1,4 +1,4 @@
-﻿namespace OptiTrajet.Dtos.Out
+﻿namespace OptiTrajet.Domain.Out
 {
     public class LineDto
     {

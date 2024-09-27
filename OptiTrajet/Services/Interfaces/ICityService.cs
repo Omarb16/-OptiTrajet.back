@@ -1,9 +1,9 @@
-﻿using OptiTrajet.Dtos.Out;
+﻿using OptiTrajet.Domain.Out;
 
 namespace OptiTrajet.Services.Interfaces
 {
     public interface ICityService
     {
-        Task<List<CityDto>> Get();
+        Task<CityDto[]> Get();
     }
 }

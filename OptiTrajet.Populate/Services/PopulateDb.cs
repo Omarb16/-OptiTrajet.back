@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using OptiTrajet.Domain.Entities;
+using OptiTrajet.Domain.States;
 using OptiTrajet.Persistence;
 using OptiTrajet.Populate.Model;
 using Serilog;
@@ -67,7 +66,7 @@ namespace OptiTrajet.Populate.Services
 
         public async Task Populate()
         {
-            _logger.Information("Began");
+            _logger.Information("Start");
 
             var stationsJson = GetStationsFromJson();
 
@@ -83,15 +82,22 @@ namespace OptiTrajet.Populate.Services
                     await _dbContext.Database.ExecuteSqlRawAsync("DELETE FROM Lines");
                     await _dbContext.Database.ExecuteSqlRawAsync("DELETE FROM Places");
 
+                    _logger.Information("Deleted data");
+
                     await _dbContext.Lines.AddRangeAsync(lines);
 
-                    var cities = citiesJson.Select(s => new Domain.Entities.City
+                    _logger.Information($"{lines.Count()} lines added");
+
+                    var cities = citiesJson.Select(s => new Domain.States.City
                     {
                         Name = s.name,
                         Coordianates = JsonConvert.SerializeObject(s.coordinates),
+                        CodePostal = s.codepostal
                     }).ToArray();
 
                     await _dbContext.Cities.AddRangeAsync(cities);
+
+                    _logger.Information($"{cities.Count()} cities added");
 
                     var dlines = lines.ToDictionary(x => x.Name);
 
@@ -124,7 +130,7 @@ namespace OptiTrajet.Populate.Services
                         .Select(x => x.Id)
                         .FirstOrDefault();
 
-                        return new Domain.Entities.Station
+                        return new Domain.States.Station
                         {
                             Lat = s.Position.Lat,
                             Lon = s.Position.Lng,
@@ -135,6 +141,8 @@ namespace OptiTrajet.Populate.Services
                     }).ToArray();
 
                     await _dbContext.Stations.AddRangeAsync(stations);
+
+                    _logger.Information($"{stations.Count()} stations added");
 
                     await _dbContext.SaveChangesAsync();
 
@@ -153,7 +161,7 @@ namespace OptiTrajet.Populate.Services
 
         private Model.Station[] GetStationsFromJson()
         {
-            using StreamReader streamReaderS = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv2\emplacement-des-gares-idf.json"));
+            using StreamReader streamReaderS = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv3\emplacement-des-gares-idf.json"));
             string jsonS = streamReaderS.ReadToEnd();
 
             return JsonConvert.DeserializeObject<Model.Station[]>(jsonS)!;
@@ -161,7 +169,7 @@ namespace OptiTrajet.Populate.Services
 
         private Model.City[] GetCitiesFromJson()
         {
-            using StreamReader streamReaderR = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv2\zones_idf.json"));
+            using StreamReader streamReaderR = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv3\zones_idf.json"));
             string jsonR = streamReaderR.ReadToEnd();
 
             return JsonConvert.DeserializeObject<Model.City[]>(jsonR)!;
@@ -169,7 +177,7 @@ namespace OptiTrajet.Populate.Services
 
         public void ModifiedStations()
         {
-            using StreamReader r = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\v2\emplacement-des-gares-idf.json"));
+            using StreamReader r = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\source\emplacement-des-gares-idf.json"));
             string json = r.ReadToEnd();
             var data = JsonConvert.DeserializeObject<List<StationIDFMobilites>>(json);
 
@@ -184,12 +192,12 @@ namespace OptiTrajet.Populate.Services
                 Line = s.res_com,
             }).ToList();
 
-            File.WriteAllText(@"Files\modifiedv2\emplacement-des-gares-idf.json", JsonConvert.SerializeObject(d));
+            File.WriteAllText(@"Files\modifiedv4\emplacement-des-gares-idf.json", JsonConvert.SerializeObject(d));
         }
 
         public void ModifiedCities()
         {
-            using StreamReader r = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\v2\zones_idf.json"));
+            using StreamReader r = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\source\zones_idf.json"));
             string json = r.ReadToEnd();
             var data = JsonConvert.DeserializeObject<CityIDF>(json);
 
@@ -197,52 +205,28 @@ namespace OptiTrajet.Populate.Services
             {
                 name = s.properties.nom,
                 coordinates = s.geometry.coordinates[0].Select(s => s.Reverse().ToArray()).ToArray(),
+                codepostal= s.properties.code
             }).ToList();
 
-            File.WriteAllText(@"Files\modifiedv2\zones_idf.json", JsonConvert.SerializeObject(d));
+            File.WriteAllText(@"Files\modifiedv3\zones_idf.json", JsonConvert.SerializeObject(d));
         }
 
         public void Count()
         {
-            //using StreamReader r1 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\v1\zones_idf.json"));
-            //string json = r1.ReadToEnd();
-            //var data1 = JsonConvert.DeserializeObject<CityIDF>(json);
-            //Console.WriteLine("v1 zones_idf : " + data1.features.Count);
-
-            using StreamReader r2 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\v2\zones_idf.json"));
+            using StreamReader r2 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\source\zones_idf.json"));
             var json = r2.ReadToEnd();
             var data1 = JsonConvert.DeserializeObject<CityIDF>(json);
             Console.WriteLine("v2 zones_idf : " + data1.features.Count);
 
-            //using StreamReader r3 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv1\zones_idf.json"));
-            //json = r3.ReadToEnd();
-            //var data2 = JsonConvert.DeserializeObject<Model.City[]>(json);
-            //Console.WriteLine("modifiedv1 zones_idf : " + data2.Length);
-
-            using StreamReader r4 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv2\zones_idf.json"));
-            json = r4.ReadToEnd();
+            using StreamReader r3 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv2\zones_idf.json"));
+            json = r3.ReadToEnd();
             var data2 = JsonConvert.DeserializeObject<Model.City[]>(json);
-            Console.WriteLine("modifiedv2 zones_idf : " + data2.Length);
+            Console.WriteLine("modifiedv1 zones_idf : " + data2.Length);
 
-            //using StreamReader r5 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\v1\emplacement-des-gares-idf.json"));
-            //json = r5.ReadToEnd();
-            //var data3 = JsonConvert.DeserializeObject<StationIDFMobilites[]>(json);
-            //Console.WriteLine("v1 emplacement-des-gares-idf : " + data3.Length);
-
-            using StreamReader r6 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\v2\emplacement-des-gares-idf.json"));
-            json = r6.ReadToEnd();
-            var data3 = JsonConvert.DeserializeObject<StationIDFMobilites[]>(json);
-            Console.WriteLine("v2 emplacement-des-gares-idf : " + data3.Length);
-
-            //using StreamReader r7 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv1\emplacement-des-gares-idf.json"));
-            //json = r7.ReadToEnd();
-            //var data4 = JsonConvert.DeserializeObject<Model.Station[]>(json);
-            //Console.WriteLine("modifiedv1 emplacement-des-gares-idf : " + data4.Length);
-
-            using StreamReader r8 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv2\emplacement-des-gares-idf.json"));
-            json = r8.ReadToEnd();
-            var data4 = JsonConvert.DeserializeObject<Model.Station[]>(json);
-            Console.WriteLine("modifiedv2 emplacement-des-gares-idf : " + data4.Length);
+            using StreamReader r4 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv3\zones_idf.json"));
+            json = r4.ReadToEnd();
+            var data3 = JsonConvert.DeserializeObject<Model.City[]>(json);
+            Console.WriteLine("modifiedv2 zones_idf : " + data3.Length);
         }
     }
 }

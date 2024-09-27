@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OptiTrajet.Dtos.In;
+using OptiTrajet.Domain.In;
+using OptiTrajet.Exceptions;
 using OptiTrajet.Services;
 using OptiTrajet.Services.Interfaces;
+using Spire.Xls;
+using Spire.Xls.Core;
 using System.Net.Mime;
 
 namespace OptiTrajet.Controllers
@@ -33,19 +36,26 @@ namespace OptiTrajet.Controllers
             {
                 return Ok(await _stationService.Get(command));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error("{ex}", ex);
                 return BadRequest();
             }
         }
 
-        [HttpGet("GetReport/{id}")]
-        public async Task<IActionResult> GetReport(Guid id)
+        [HttpPost("Report")]
+        public async Task<IActionResult> GetReport([FromBody] GetReport command)
         {
             try
             {
-                return Ok(await _itinerariesService.GetReport(id));
+                var stream = await _itinerariesService.GetReport(command);
+
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            }
+            catch(FunctionalException ex)
+            {
+                _logger.Error("{ex}", ex);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

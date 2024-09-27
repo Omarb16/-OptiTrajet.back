@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OptiTrajet.Domain.Entities;
+using OptiTrajet.Domain.States;
 
 namespace OptiTrajet.Persistence
 {

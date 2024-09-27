@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OptiTrajet.Domain.Entities
+namespace OptiTrajet.Domain.States
 {
     public class Itinerary
     {

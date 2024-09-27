@@ -43,9 +43,9 @@ namespace OptiTrajet.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Lat = table.Column<decimal>(type: "decimal(18,16)", nullable: false),
-                    Lon = table.Column<decimal>(type: "decimal(18,16)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", maxLength: 250, nullable: false)
+                    Lat = table.Column<decimal>(type: "decimal(18,3)", nullable: false),
+                    Lon = table.Column<decimal>(type: "decimal(18,3)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -58,8 +58,8 @@ namespace OptiTrajet.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Lat = table.Column<decimal>(type: "decimal(18,16)", nullable: false),
-                    Lon = table.Column<decimal>(type: "decimal(18,16)", nullable: false),
+                    Lat = table.Column<decimal>(type: "decimal(18,3)", nullable: false),
+                    Lon = table.Column<decimal>(type: "decimal(18,3)", nullable: false),
                     LineId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CityId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },

@@ -43,6 +43,7 @@
     public class Property
     {
         public string nom { get; set; } = string.Empty;
+        public string code { get; set; } = string.Empty;
     }
 
     public class Geometry
@@ -53,6 +54,7 @@
     public class City
     {
         public string name { get; set; } = string.Empty;
+        public string codepostal { get; set; } = string.Empty;
         public decimal[][] coordinates { get; set; } = Array.Empty<decimal[]>();
     }
 }

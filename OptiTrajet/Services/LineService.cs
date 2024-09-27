@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using OptiTrajet.Dtos.Out;
+using OptiTrajet.Domain.Out;
 using OptiTrajet.Persistence;
 using OptiTrajet.Services.Interfaces;
 
@@ -15,13 +15,13 @@ namespace OptiTrajet.Services
             _dbContext = dbContext;
         }
 
-        public async Task<List<LineDto>> Get()
+        public async Task<LineDto[]> Get()
         {
             return await _dbContext.Lines.Select(s => new LineDto
             {
                 Id = s.Id,
                 Name = s.Name,
-            }).OrderBy(x => x.Name).ToListAsync();
+            }).OrderBy(x => x.Name).ToArrayAsync();
         }
     }
 }

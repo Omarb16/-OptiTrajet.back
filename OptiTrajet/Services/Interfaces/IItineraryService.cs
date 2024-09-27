@@ -1,10 +1,11 @@
-﻿using OptiTrajet.Dtos.In;
+﻿using OptiTrajet.Domain.In;
+using Spire.Xls;
 
 namespace OptiTrajet.Services.Interfaces
 {
     public interface IItineraryService
     {
         Task FindOptimalCommute(FindOptimalCommute command);
-        Task<ByteArrayContent> GetReport(Guid placeId);
+        Task<MemoryStream> GetReport(GetReport command);
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace OptiTrajet.Dtos.In
+﻿namespace OptiTrajet.Domain.In
 {
     public class FindOptimalCommute
     {

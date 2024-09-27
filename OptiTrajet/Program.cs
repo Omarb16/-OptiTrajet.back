@@ -26,7 +26,7 @@ Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
             .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-            .WriteTo.File(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}", path: @"/logs/OptiTrajet-.txt", rollingInterval: RollingInterval.Month)
+            .WriteTo.File(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}", path: @"./logs/OptiTrajet-.txt", rollingInterval: RollingInterval.Month)
             .CreateLogger();
 
 builder.Host.UseSerilog(Log.Logger);
@@ -54,5 +54,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+Log.Logger.Information("Sever starting");
 
 app.Run();

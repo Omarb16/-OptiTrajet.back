@@ -1,6 +1,6 @@
-﻿namespace OptiTrajet.Dtos.Out
+﻿namespace OptiTrajet.Domain.Entities
 {
-    public class StationLatLonDto
+    public class StationLatLon
     {
         public Guid Id { get; set; }
         public decimal Lat { get; set; } = 0;

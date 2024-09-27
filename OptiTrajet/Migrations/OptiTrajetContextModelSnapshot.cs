@@ -22,7 +22,7 @@ namespace OptiTrajet.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("OptiTrajet.Domain.Entities.City", b =>
+            modelBuilder.Entity("OptiTrajet.Domain.States.City", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -48,7 +48,7 @@ namespace OptiTrajet.Migrations
                     b.ToTable("Cities");
                 });
 
-            modelBuilder.Entity("OptiTrajet.Domain.Entities.Itinerary", b =>
+            modelBuilder.Entity("OptiTrajet.Domain.States.Itinerary", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -75,7 +75,7 @@ namespace OptiTrajet.Migrations
                     b.ToTable("Itineraries");
                 });
 
-            modelBuilder.Entity("OptiTrajet.Domain.Entities.Line", b =>
+            modelBuilder.Entity("OptiTrajet.Domain.States.Line", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -96,28 +96,27 @@ namespace OptiTrajet.Migrations
                     b.ToTable("Lines");
                 });
 
-            modelBuilder.Entity("OptiTrajet.Domain.Entities.Place", b =>
+            modelBuilder.Entity("OptiTrajet.Domain.States.Place", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasMaxLength(250)
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Lat")
-                        .HasColumnType("decimal(18,16)");
+                        .HasColumnType("decimal(18,3)");
 
                     b.Property<decimal>("Lon")
-                        .HasColumnType("decimal(18,16)");
+                        .HasColumnType("decimal(18,3)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Places");
                 });
 
-            modelBuilder.Entity("OptiTrajet.Domain.Entities.Station", b =>
+            modelBuilder.Entity("OptiTrajet.Domain.States.Station", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -127,13 +126,13 @@ namespace OptiTrajet.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Lat")
-                        .HasColumnType("decimal(18,16)");
+                        .HasColumnType("decimal(18,3)");
 
                     b.Property<Guid>("LineId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Lon")
-                        .HasColumnType("decimal(18,16)");
+                        .HasColumnType("decimal(18,3)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -149,15 +148,15 @@ namespace OptiTrajet.Migrations
                     b.ToTable("Stations");
                 });
 
-            modelBuilder.Entity("OptiTrajet.Domain.Entities.Itinerary", b =>
+            modelBuilder.Entity("OptiTrajet.Domain.States.Itinerary", b =>
                 {
-                    b.HasOne("OptiTrajet.Domain.Entities.Place", "Place")
+                    b.HasOne("OptiTrajet.Domain.States.Place", "Place")
                         .WithMany()
                         .HasForeignKey("PlaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OptiTrajet.Domain.Entities.Station", "Station")
+                    b.HasOne("OptiTrajet.Domain.States.Station", "Station")
                         .WithMany()
                         .HasForeignKey("StationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -168,13 +167,13 @@ namespace OptiTrajet.Migrations
                     b.Navigation("Station");
                 });
 
-            modelBuilder.Entity("OptiTrajet.Domain.Entities.Station", b =>
+            modelBuilder.Entity("OptiTrajet.Domain.States.Station", b =>
                 {
-                    b.HasOne("OptiTrajet.Domain.Entities.City", "City")
+                    b.HasOne("OptiTrajet.Domain.States.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId");
 
-                    b.HasOne("OptiTrajet.Domain.Entities.Line", "Line")
+                    b.HasOne("OptiTrajet.Domain.States.Line", "Line")
                         .WithMany()
                         .HasForeignKey("LineId")
                         .OnDelete(DeleteBehavior.Cascade)

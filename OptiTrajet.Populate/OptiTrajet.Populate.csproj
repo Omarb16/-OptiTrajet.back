@@ -38,25 +38,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Files\modifiedv1\emplacement-des-gares-idf.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Files\modifiedv1\zones_idf.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Files\modifiedv2\emplacement-des-gares-idf.json">
+    <None Update="Files\modifiedv3\emplacement-des-gares-idf.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Files\v1\emplacement-des-gares-idf.json">
+    <None Update="Files\modifiedv3\zones_idf.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Files\v1\zones_idf.json">
+    <None Update="Files\source\emplacement-des-gares-idf.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Files\v2\emplacement-des-gares-idf.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Files\v2\zones_idf.json">
+    <None Update="Files\source\zones_idf.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
