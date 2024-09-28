@@ -9,20 +9,26 @@ using OptiTrajet.Services.Interfaces;
 using Spire.Xls;
 using System.Data;
 using System.Net.Http.Headers;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace OptiTrajet.Services
 {
     public class ItineraryService : IItineraryService
     {
         private readonly OptiTrajetContext _dbContext;
+        private readonly string API_KEY;
 
-        private const string API_KEY = "cb90a96a-85b7-4c80-9798-b774afbc3c7b";
         private const string URI = "https://api.navitia.io";
 
-        public ItineraryService(OptiTrajetContext dbContext)
+        public ItineraryService(OptiTrajetContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
+
+            API_KEY = configuration["API_KEY"]?.ToString();
+
+            if(API_KEY == null)
+            {
+                throw new FunctionalException("API KEY missing");
+            }
         }
 
         public async Task FindOptimalCommute(FindOptimalCommute command)
@@ -41,9 +47,6 @@ namespace OptiTrajet.Services
 
                 await _dbContext.SaveChangesAsync();
             }
-
-            var client = CreacteCLient();
-            var fTime = GetTime();
 
             var stationsIdWithItinerary = await _dbContext.Itineraries.Where(x => x.PlaceId == place.Id).Select(x => x.StationId).Distinct().ToArrayAsync();
 
@@ -71,6 +74,9 @@ namespace OptiTrajet.Services
                 Lat = s.Lat,
                 Lon = s.Lon,
             }).GroupBy(g => g.Lat.ToString() + "-" + g.Lon.ToString()).ToArrayAsync();
+
+            var client = CreacteClient();
+            var fTime = GetTime();
 
             for (int i = 0; i < stations.Length; i++)
             {
@@ -170,6 +176,7 @@ namespace OptiTrajet.Services
 
         private static string GetTime()
         {
+            // Lundi 8h
             int daysToAdd = (1 - (int)DateTime.UtcNow.DayOfWeek + 7) % 7;
             var time = DateTime.UtcNow.AddDays(daysToAdd);
             time = time.AddHours(7 - time.Hour);
@@ -179,7 +186,7 @@ namespace OptiTrajet.Services
             return time.ToString("yyyyMMddTHHmmss");
         }
 
-        private static HttpClient CreacteCLient()
+        private HttpClient CreacteClient()
         {
             HttpClient client = new()
             {

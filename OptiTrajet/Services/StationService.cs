@@ -44,6 +44,7 @@ namespace OptiTrajet.Services
                 Lon = x.Lon,
                 Name = x.Name,
                 Color = x.Line.Color,
+                Duration = -1
             }).ToArrayAsync();
 
             var place = await _dbContext.Places.Where(x => x.Lat == Math.Round(command.Lat, 3) && x.Lon == Math.Round(command.Lon, 3)).FirstOrDefaultAsync();
@@ -57,11 +58,7 @@ namespace OptiTrajet.Services
             {
                 var d = await _dbContext.Itineraries.Where(x => x.PlaceId == place.Id && x.StationId == stations[i].Id).Select(x => new { x.Duration }).FirstOrDefaultAsync();
 
-                if (d == null)
-                {
-                    stations[i].Duration = -1;
-                }
-                else
+                if (d != null)
                 {
                     stations[i].Duration = d.Duration;
                 }
