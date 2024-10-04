@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OptiTrajet.Domain.In;
 using OptiTrajet.Domain.Out;
-using OptiTrajet.Domain.States;
 using OptiTrajet.Persistence;
 using OptiTrajet.Services.Interfaces;
 

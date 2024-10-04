@@ -4,7 +4,7 @@
     {
         public decimal Lat { get; set; }
         public decimal Lon { get; set; }
-        public Guid[] Lines { get; set; } = Array.Empty<Guid>();
+        public Guid[] Lines { get; set; } = [];
         public int Radius { get; set; } = 0;
     }
 }

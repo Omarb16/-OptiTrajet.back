@@ -30,7 +30,9 @@ using (var scope = app.Services.CreateScope())
 {
     var service = scope.ServiceProvider.GetService<IPopulateDb>()!;
     await service.Populate();
+    // https://france-geojson.gregoiredavid.fr/
     //service.ModifiedCities();
+    // https://data.iledefrance-mobilites.fr/explore/dataset/emplacement-des-gares-idf/export/
     //service.ModifiedStations();
     //service.Count();
 }

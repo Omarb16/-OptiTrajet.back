@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OptiTrajet.Domain.In;
 using OptiTrajet.Exceptions;
-using OptiTrajet.Services;
 using OptiTrajet.Services.Interfaces;
-using Spire.Xls;
-using Spire.Xls.Core;
 using System.Net.Mime;
 
 namespace OptiTrajet.Controllers
@@ -38,7 +35,7 @@ namespace OptiTrajet.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error("{ex}", ex);
+                _logger.Error(ex, "{ex}");
                 return BadRequest();
             }
         }
@@ -54,12 +51,11 @@ namespace OptiTrajet.Controllers
             }
             catch(FunctionalException ex)
             {
-                _logger.Error("{ex}", ex);
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.Error("{ex}", ex);
+                _logger.Error(ex, "{ex}");
                 return BadRequest();
             }
         }
@@ -73,7 +69,7 @@ namespace OptiTrajet.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error("{ex}", ex);
+                _logger.Error(ex, "{ex}");
                 return BadRequest();
             }
         }
@@ -87,22 +83,26 @@ namespace OptiTrajet.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error("{ex}", ex);
+                _logger.Error(ex, "{ex}");
                 return BadRequest();
             }
         }
 
-        [HttpPost("FindOptimalCommute")]
-        public async Task<IActionResult> FindOptimalCommute([FromBody] FindOptimalCommute command)
+        [HttpPost("FindItineraries")]
+        public async Task<IActionResult> FindItineraries([FromBody] FindOptimalCommute command)
         {
             try
             {
-                await _itinerariesService.FindOptimalCommute(command);
+                await _itinerariesService.FindItineraries(command);
                 return Ok();
+            }
+            catch (FunctionalException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.Error("{ex}", ex);
+                _logger.Error(ex, "{ex}");
                 return BadRequest();
             }
         }

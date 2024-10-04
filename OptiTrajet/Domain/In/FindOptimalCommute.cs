@@ -7,5 +7,6 @@
         public int Duration { get; set; }
         public int Radius { get; set; }
         public Guid[] Lines { get; set; } = Array.Empty<Guid>();
+        public string ConnectionId { get; set; } = string.Empty;
     }
 }

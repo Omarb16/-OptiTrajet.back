@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OptiTrajet.Hubs;
 using OptiTrajet.Persistence;
 using OptiTrajet.Services;
 using OptiTrajet.Services.Interfaces;
@@ -21,7 +22,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -36,6 +36,10 @@ builder.Services.AddTransient<ICityService, CityService>();
 builder.Services.AddTransient<IItineraryService, ItineraryService>();
 builder.Services.AddTransient<IStationService, StationService>();
 builder.Services.AddTransient<ILineService, LineService>();
+builder.Services.AddSingleton<ISocketHub, SocketHub>();
+
+builder.Services.AddSignalR();
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddEndpointsApiExplorer();
@@ -48,13 +52,14 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors();
 app.MapControllers();
-app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.MapHub<SocketHub>("/hubs");
+
 Log.Logger.Information("Sever starting");
 
-app.Run();
+await app.RunAsync();

@@ -5,7 +5,7 @@ namespace OptiTrajet.Services.Interfaces
 {
     public interface IItineraryService
     {
-        Task FindOptimalCommute(FindOptimalCommute command);
+        Task FindItineraries(FindOptimalCommute command);
         Task<MemoryStream> GetReport(GetReport command);
     }
 }

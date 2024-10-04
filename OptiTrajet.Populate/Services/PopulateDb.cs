@@ -72,7 +72,7 @@ namespace OptiTrajet.Populate.Services
 
             var citiesJson = GetCitiesFromJson();
 
-            using (var transaction = _dbContext.Database.BeginTransaction())
+            using (var transaction = await _dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -161,7 +161,7 @@ namespace OptiTrajet.Populate.Services
 
         private Model.Station[] GetStationsFromJson()
         {
-            using StreamReader streamReaderS = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv3\emplacement-des-gares-idf.json"));
+            using StreamReader streamReaderS = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modified\emplacement-des-gares-idf.json"));
             string jsonS = streamReaderS.ReadToEnd();
 
             return JsonConvert.DeserializeObject<Model.Station[]>(jsonS)!;
@@ -169,7 +169,7 @@ namespace OptiTrajet.Populate.Services
 
         private Model.City[] GetCitiesFromJson()
         {
-            using StreamReader streamReaderR = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv3\zones_idf.json"));
+            using StreamReader streamReaderR = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modified\zones_idf.json"));
             string jsonR = streamReaderR.ReadToEnd();
 
             return JsonConvert.DeserializeObject<Model.City[]>(jsonR)!;
@@ -192,7 +192,7 @@ namespace OptiTrajet.Populate.Services
                 Line = s.res_com,
             }).ToList();
 
-            File.WriteAllText(@"Files\modifiedv4\emplacement-des-gares-idf.json", JsonConvert.SerializeObject(d));
+            File.WriteAllText(@"Files\modified\emplacement-des-gares-idf.json", JsonConvert.SerializeObject(d));
         }
 
         public void ModifiedCities()
@@ -208,25 +208,7 @@ namespace OptiTrajet.Populate.Services
                 codepostal= s.properties.code
             }).ToList();
 
-            File.WriteAllText(@"Files\modifiedv3\zones_idf.json", JsonConvert.SerializeObject(d));
-        }
-
-        public void Count()
-        {
-            using StreamReader r2 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\source\zones_idf.json"));
-            var json = r2.ReadToEnd();
-            var data1 = JsonConvert.DeserializeObject<CityIDF>(json);
-            Console.WriteLine("v2 zones_idf : " + data1.features.Count);
-
-            using StreamReader r3 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv2\zones_idf.json"));
-            json = r3.ReadToEnd();
-            var data2 = JsonConvert.DeserializeObject<Model.City[]>(json);
-            Console.WriteLine("modifiedv1 zones_idf : " + data2.Length);
-
-            using StreamReader r4 = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), @"Files\modifiedv3\zones_idf.json"));
-            json = r4.ReadToEnd();
-            var data3 = JsonConvert.DeserializeObject<Model.City[]>(json);
-            Console.WriteLine("modifiedv2 zones_idf : " + data3.Length);
+            File.WriteAllText(@"Files\modified\zones_idf.json", JsonConvert.SerializeObject(d));
         }
     }
 }

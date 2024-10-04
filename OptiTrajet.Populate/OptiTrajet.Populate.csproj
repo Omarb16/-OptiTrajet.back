@@ -2,17 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>OptiTrajet.Populate</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>358e9e7b-b0d0-4759-804e-d87927b5112d</UserSecretsId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Files\modified\**" />
-    <EmbeddedResource Remove="Files\modified\**" />
-    <None Remove="Files\modified\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Remove="appsettings.json" />
@@ -27,8 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Serilog" Version="4.0.2" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
   </ItemGroup>
@@ -38,13 +34,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Files\modifiedv1\zones_idf.json">
+    <None Update="Files\modified\emplacement-des-gares-idf.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Files\modifiedv3\emplacement-des-gares-idf.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Files\modifiedv3\zones_idf.json">
+    <None Update="Files\modified\zones_idf.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Files\source\emplacement-des-gares-idf.json">

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using OptiTrajet.Domain.Out;
 using OptiTrajet.Persistence;
 using OptiTrajet.Services.Interfaces;

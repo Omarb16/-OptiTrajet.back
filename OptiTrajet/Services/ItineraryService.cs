@@ -4,6 +4,7 @@ using OptiTrajet.Domain.Entities;
 using OptiTrajet.Domain.In;
 using OptiTrajet.Domain.States;
 using OptiTrajet.Exceptions;
+using OptiTrajet.Hubs;
 using OptiTrajet.Persistence;
 using OptiTrajet.Services.Interfaces;
 using Spire.Xls;
@@ -15,23 +16,29 @@ namespace OptiTrajet.Services
     public class ItineraryService : IItineraryService
     {
         private readonly OptiTrajetContext _dbContext;
+        private readonly Serilog.ILogger _logger;
+        private readonly ISocketHub _socket;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly string API_KEY;
 
         private const string URI = "https://api.navitia.io";
 
-        public ItineraryService(OptiTrajetContext dbContext, IConfiguration configuration)
+        public ItineraryService(OptiTrajetContext dbContext, ISocketHub socket, IConfiguration configuration, Serilog.ILogger logger, IServiceScopeFactory scopeFactory)
         {
             _dbContext = dbContext;
+            _logger = logger;
+            _socket = socket;
+            _scopeFactory = scopeFactory;
 
             API_KEY = configuration["API_KEY"]?.ToString();
 
-            if(API_KEY == null)
+            if (API_KEY == null)
             {
                 throw new FunctionalException("API KEY missing");
             }
         }
 
-        public async Task FindOptimalCommute(FindOptimalCommute command)
+        public async Task FindItineraries(FindOptimalCommute command)
         {
             var place = await _dbContext.Places.Where(x => x.Lat == Math.Round(command.Lat, 3) && x.Lon == Math.Round(command.Lon, 3)).FirstOrDefaultAsync();
 
@@ -75,42 +82,82 @@ namespace OptiTrajet.Services
                 Lon = s.Lon,
             }).GroupBy(g => g.Lat.ToString() + "-" + g.Lon.ToString()).ToArrayAsync();
 
-            var client = CreacteClient();
-            var fTime = GetTime();
-
-            for (int i = 0; i < stations.Length; i++)
+            if (stations.Length == 0)
             {
-                var station = stations[i].FirstOrDefault();
-
-                if (station is null)
-                {
-                    continue;
-                }
-
-                var duration = -1;
-
-                var res = await GetJourney(client, station, place.Lat, place.Lon, fTime);
-
-                if (res?.Journeys?.Count > 0)
-                {
-                    duration = res.Journeys.Select(s => s.duration).Min();
-                }
-
-                foreach (var st in stations[i])
-                {
-                    var itinerary = new Itinerary
-                    {
-                        StationId = st.Id,
-                        PlaceId = place.Id,
-                        Duration = duration / 60,
-                    };
-
-                    await _dbContext.Itineraries.AddAsync(itinerary);
-                    await _dbContext.SaveChangesAsync();
-                }
+                throw new FunctionalException("Trajets déjà calculés");
             }
 
-            client.Dispose();
+            SetItineraries(stations, place, command.ConnectionId);
+        }
+
+        public async Task SetItineraries(IGrouping<string, StationLatLon>[] stations, Place place, string connectionId)
+        {
+            try
+            {
+                await _socket.SendProgress(connectionId, 0);
+
+                var client = CreacteClient();
+                var fTime = GetTime();
+                int lastProgress = 0;
+
+                var itineraries = new List<Itinerary>(stations.Length);
+
+
+                for (int i = 0; i < stations.Length; i++)
+                {
+                    var station = stations[i].FirstOrDefault();
+
+                    if (station is null)
+                    {
+                        continue;
+                    }
+
+                    var duration = -1;
+
+                    var res = await GetJourney(client, station, place.Lat, place.Lon, fTime);
+
+                    if (res?.Journeys?.Count > 0)
+                    {
+                        duration = res.Journeys.Select(s => s.duration).Min();
+                    }
+
+                    var stationsLatLon = stations[i].ToArray();
+
+                    for (int j = 0; j < stationsLatLon.Length; j++)
+                    {
+                        itineraries.Add(new Itinerary
+                        {
+                            StationId = stationsLatLon[j].Id,
+                            PlaceId = place.Id,
+                            Duration = duration / 60,
+                        });
+                    }
+
+                    var progress = (int)Math.Floor((double)i / (double)stations.Length * 100);
+
+                    if (progress >= lastProgress + 5)
+                    {
+                        await _socket.SendProgress(connectionId, progress);
+                        lastProgress = progress;
+                    }
+                }
+
+                client.Dispose();
+
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var _scopedDbContext = scope.ServiceProvider.GetRequiredService<OptiTrajetContext>();
+
+                    await _scopedDbContext.Itineraries.AddRangeAsync(itineraries);
+                    await _scopedDbContext.SaveChangesAsync();
+                }
+
+                await _socket.SendProgress(connectionId, 100);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "{ex}");
+            }
         }
 
         public async Task<MemoryStream> GetReport(GetReport command)
@@ -122,24 +169,23 @@ namespace OptiTrajet.Services
                 throw new FunctionalException("Find optimal commute routes first");
             }
 
-            var cities = await _dbContext.Itineraries.Where(x => x.PlaceId == place.Id && x.Duration <= command.Duration)
-                .Select(x => new CityEntity
+            var groupedReports = (await _dbContext.Itineraries.Where(x => x.PlaceId == place.Id && x.Duration <= command.Duration)
+                .Select(x => new ReportEntity
                 {
-                    Name = x.Station.City.Name,
-                    CodePostal = x.Station.City.CodePostal
-                }).ToArrayAsync();
+                    City = x.Station.City.Name,
+                    CodePostal = x.Station.City.CodePostal,
+                    Station = x.Station.Name,
+                    Line = x.Station.Line.Name,
+                    Duration = x.Duration
+                })
+                .GroupBy(x => x.City).ToArrayAsync())
+                .Select(x => x.OrderBy(x => x.Duration).ToArray())
+                .ToArray();
 
-            cities = cities.DistinctBy(x => x.Name).ToArray();
-
-            Workbook workbook = new Workbook();
+            var workbook = new Workbook();
 
             workbook.Worksheets.Clear();
             Worksheet worksheet = workbook.Worksheets.Add("0");
-
-            DataTable dataTable = new DataTable();
-
-            dataTable.Columns.Add("City", typeof(string));
-            dataTable.Columns.Add("Code Postal", typeof(string));
 
             CellStyle fontStyle = workbook.Styles.Add("header");
 
@@ -148,17 +194,39 @@ namespace OptiTrajet.Services
 
             worksheet.ApplyStyle(fontStyle);
 
-            for (int i = 0; i < cities.Length; i++)
+            var dataTable = new DataTable();
+
+            dataTable.Columns.Add("Ville", typeof(string));
+            dataTable.Columns.Add("Code Postal", typeof(string));
+            dataTable.Columns.Add("Station", typeof(string));
+            dataTable.Columns.Add("Ligne", typeof(string));
+            dataTable.Columns.Add("Durée", typeof(string));
+
+            for (int i = 0; i < groupedReports.Length; i++)
             {
+                var lines = groupedReports[i].ToArray();
+
                 DataRow dr = dataTable.NewRow();
-                dr[0] = cities[i].Name;
-                dr[1] = cities[i].CodePostal;
+                dr[0] = lines[0].City;
+                dr[1] = lines[0].CodePostal;
+                dr[2] = lines[0].Station;
+                dr[3] = lines[0].Line;
+                dr[4] = lines[0].Duration.ToString() + " min";
                 dataTable.Rows.Add(dr);
+
+                for (int j = 1; j < lines.Length; j++)
+                {
+                    dr = dataTable.NewRow();
+                    dr[2] = lines[j].Station;
+                    dr[3] = lines[j].Line;
+                    dr[4] = lines[j].Duration + " min";
+                    dataTable.Rows.Add(dr);
+                }
             }
 
             worksheet.InsertDataTable(dataTable, true, 1, 1, true);
 
-            MemoryStream stream = new MemoryStream();
+            var stream = new MemoryStream();
             workbook.SaveToStream(stream, FileFormat.Version2016);
             stream.Position = 0;
 
